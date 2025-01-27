@@ -1,0 +1,53 @@
+name: 'Dependency Review'
+
+on:
+  pull_request:
+    branches:
+      - "main"
+      - "devel"
+
+permissions:
+  contents: read  # Read access to contents is enough for dependency review.
+  pull-requests: write  # Write permissions for commenting on PRs.
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v4
+
+      - name: 'Run Dependency Review'
+        uses: actions/dependency-review-action@v4
+        with:
+          # Ensures a comment with the dependency review summary is always posted on the PR.
+          comment-summary-in-pr: always
+          
+          # Uncomment to fail the workflow on a certain severity level of dependencies.
+          # fail-on-severity: moderate  # Uncomment to fail on moderate or worse severity issues.
+
+          # Define licenses to deny if they are detected in any dependencies.
+          # deny-licenses: GPL-1.0-or-later, LGPL-2.0-or-later
+          
+          # Uncomment to retry if there are warnings regarding snapshot dependencies.
+          # retry-on-snapshot-warnings: true
+
+          # Optionally, configure the output format to match your requirements.
+          # output-format: json  # Available: json, markdown (default)
+
+          # Optional: Exclude specific dependencies from being reviewed (by name).
+          # exclude-dependencies: "dependency-name-1, dependency-name-2"
+          
+          # Enable the action to track changes in the dependencies and alert when dependencies are outdated.
+          # track-dependencies-changes: true
+
+          # Allow you to set custom configurations such as the GitHub token used for PR comments.
+          # token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # You can also set a custom GitHub user to post comments with the dependency review information.
+          # user: "github-username"
+
+      # Additional step: You can add other tasks here if needed, e.g., for testing, notification, etc.
+      # - name: Run Tests
+      #   run: npm test
