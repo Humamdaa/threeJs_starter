@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import WebGL from 'three/addons/capabilities/WebGL.js';
 import { createCamera } from '../camera';
 
 export function createScene() {
@@ -21,5 +22,12 @@ export function createScene() {
     renderer.render(scene, camera);
   }
 
-  animate();
+  // WebGL compatibility check
+  if (WebGL.isWebGL2Available()) {
+    // Initiate function or other initializations here
+    animate();
+  } else {
+    const warning = WebGL.getWebGL2ErrorMessage();
+    document.getElementById('container').appendChild(warning);
+  }
 }
