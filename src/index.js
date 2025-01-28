@@ -1,5 +1,2 @@
-import { createScene } from './threejs/scenes/scene1';
-
-createScene();
-
-const f = 'syria';
+import { fullScene } from './threejs/scenes/main';
+fullScene();

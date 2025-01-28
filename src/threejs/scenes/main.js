@@ -1,33 +1,39 @@
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { createCamera } from '../camera';
+import { line } from './drawLine';
+import { cube } from './drawCube';
 
-export function createScene() {
+export function fullScene() {
   const scene = new THREE.Scene();
-  const camera = createCamera();
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // Add objects, lights, etc. to the scene
-  const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
+  const camera = createCamera();
+
+  const myCube = cube(); // Get the cube mesh
+  const myLine = line(); // Get the line mesh
+
+  // Add the objects to the scene
+  scene.add(myCube);
+  scene.add(myLine);
 
   function animate() {
     requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+    myCube.rotation.x += 0.01;
+    myCube.rotation.y += 0.01;
     renderer.render(scene, camera);
   }
 
   // WebGL compatibility check
   if (WebGL.isWebGL2Available()) {
-    // Initiate function or other initializations here
     animate();
+    // Initiate function or other initializations here
   } else {
     const warning = WebGL.getWebGL2ErrorMessage();
     document.getElementById('container').appendChild(warning);
   }
+
+  return scene;
 }
