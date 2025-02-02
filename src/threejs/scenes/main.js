@@ -3,6 +3,7 @@ import WebGL from 'three/addons/capabilities/WebGL.js';
 import { createCamera } from '../camera';
 import { line } from './drawLine';
 import { cube } from './drawCube';
+import { animate } from './animateShapes';
 
 export function fullScene() {
   const scene = new THREE.Scene();
@@ -19,17 +20,10 @@ export function fullScene() {
   scene.add(myCube);
   scene.add(myLine);
 
-  function animate() {
-    requestAnimationFrame(animate);
-    myCube.rotation.x += 0.01;
-    myCube.rotation.y += 0.01;
-    renderer.render(scene, camera);
-  }
 
   // WebGL compatibility check
   if (WebGL.isWebGL2Available()) {
-    animate();
-    // Initiate function or other initializations here
+    animate(camera, myCube, renderer, scene); // Initiate function or other initializations here
   } else {
     const warning = WebGL.getWebGL2ErrorMessage();
     document.getElementById('container').appendChild(warning);

@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin'); // Add this line
 
 module.exports = {
   mode: 'development',
@@ -70,6 +71,12 @@ module.exports = {
       favicon: './src/assets/favicon.ico',
       filename: 'index.html',
       template: 'public/template.html',
+    }),
+    // ADDED FOR LOADING TEXTURES
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'public/assets', to: 'assets' }, // Copy public/assets to dist/assets
+      ],
     }),
   ],
 };
