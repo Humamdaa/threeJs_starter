@@ -16,7 +16,7 @@ export async function text3D() {
   // Create 3D text geometry
   const textGeometry = new TextGeometry('Hello, Three.js!', {
     font: font,
-    size: 2,
+    size: 0.5,
     height: 1,
     curveSegments: 12,
     bevelEnabled: false,

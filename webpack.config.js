@@ -48,22 +48,17 @@ module.exports = {
           },
         },
       },
-      /* File Loader */
       {
-        test: /\.glb$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              outputPath: 'assets/resource/',
-            },
-          },
-        ],
+        test: /\.(gltf|glb|bin|json)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/models/[name][ext]', // Ensure your models go to assets/models
+        },
       },
     ],
   },
   resolve: {
-    extensions: ['.js', '.scss'],
+    extensions: ['.js', '.scss', '.json', '.gltf'],
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -76,6 +71,7 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: 'public/assets', to: 'assets' }, // Copy public/assets to dist/assets
+        { from: 'src/assets/models', to: 'assets/models' }, // Copy GLTF models and associated files
       ],
     }),
   ],

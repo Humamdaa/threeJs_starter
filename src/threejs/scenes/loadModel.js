@@ -1,27 +1,53 @@
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-/**
- * Function to load a 3D model (GLTF/GLB) into the scene
- * @param {THREE.Scene} scene - The Three.js scene where the model will be added
- * @param {string} modelUrl - The URL of the 3D model to load (GLTF/GLB)
- */
-export function load3DModel(scene, modelUrl) {
-  const loader = new GLTFLoader();
-  
-  loader.load(
-    modelUrl,
-    (gltf) => {
-      // Successfully loaded the model
-      const model = gltf.scene;
-      model.scale.set(1, 1, 1); // Adjust scale as needed
-      model.position.set(0, 0, 0); // Set the model position
-      scene.add(model); // Add the model to the scene
-    },
-    (xhr) => {
-      console.log((xhr.loaded / xhr.total * 100) + '% loaded'); // Progress log
-    },
-    (error) => {
-      console.error('An error occurred while loading the model:', error);
+export class ModelLoader {
+  constructor() {
+    this.model = null;
+    this.loader = new GLTFLoader();
+  }
+
+  loadModel(url, onLoad, onProgress, onError) {
+    this.loader.load(
+      url,
+      (gltf) => {
+        this.model = gltf.scene;
+        if (onLoad) onLoad(this.model);
+      },
+      onProgress,
+      onError
+    );
+  }
+
+  addToScene(scene) {
+    if (this.model) {
+      scene.add(this.model);
+    } else {
+      console.warn('Model not loaded yet. Call loadModel() first.');
     }
-  );
+  }
+
+  setPosition(x, y, z) {
+    if (this.model) {
+      this.model.position.set(x, y, z);
+    } else {
+      console.warn('Model not loaded yet. Call loadModel() first.');
+    }
+  }
+
+  setScale(x, y, z) {
+    if (this.model) {
+      this.model.scale.set(x, y, z);
+    } else {
+      console.warn('Model not loaded yet. Call loadModel() first.');
+    }
+  }
+
+  rotate(x, y, z) {
+    if (this.model) {
+      this.model.rotation.set(x, y, z);
+    } else {
+      console.warn('Model not loaded yet. Call loadModel() first.');
+    }
+  }
 }

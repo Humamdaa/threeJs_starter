@@ -1,42 +1,81 @@
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
-import { createCamera } from '../camera';
+import { Camera } from '../camera.js';
 import { line } from './drawLine';
 import { cube } from './drawCube';
 import { animate } from './animateCube';
 import { cone } from './drawCone';
 import { Arch } from './drawArch';
 import { animateArch } from './animateArch';
-import { text3D } from './Text3D';
+import { ModelLoader } from './loadModel.js';
+import { text3D } from './Text3D.js';
 
-// Function to initialize the scene and add objects
-// Function to initialize the scene and add objects
+// Initialize the scene and add objects
 async function initScene() {
   const scene = new THREE.Scene();
 
-  // Create objects
+  // Create and position objects
   const myCube = cube();
-  const myLine = line();
   const myCone = cone();
+  const myText = await text3D();
+  const myLine = line();
   const myArch = Arch();
-  const textMesh = await text3D(); // Ensure text is loaded asynchronously
-
-  // Set positions of objects
-  textMesh.position.set(-10, 10, -25);
   myArch.position.set(5, -3, -3);
 
   // Add objects to the scene
-  scene.add(myCube);
-  scene.add(myLine);
-  scene.add(myCone);
-  scene.add(myArch);
-  scene.add(textMesh);
+  scene.add(myCube, myLine, myText, myCone, myArch);
 
-  // Return the objects so they can be used elsewhere
-  return { scene, myCube, myLine, myCone, myArch, textMesh };
+  // Load and configure the GLTF model
+  const modelLoader = new ModelLoader();
+  loadModel(scene, modelLoader);
+
+  return { scene, myCube, myLine, myText, myCone, myArch };
 }
 
-// Function to check WebGL compatibility
+// Load the GLTF model and apply materials
+function loadModel(scene, modelLoader) {
+  try {
+    modelLoader.loadModel(
+      'assets/models/searsia_lucida_1k.gltf', // Path to the model
+      (model) => {
+        // Model loaded successfully
+        console.log('Model loaded:', model);
+
+        // Set the model's position, scale, and rotation
+        modelLoader.setPosition(0, 2, 0);
+
+        // Add the model to the scene
+        modelLoader.addToScene(scene);
+
+        // Apply a material with an emissive color(green) to make it stand out
+        model.traverse((child) => {
+          if (child.isMesh) {
+            const material = new THREE.MeshStandardMaterial({
+              color: 0x00ff00,
+              emissive: 0x00ff00,
+              emissiveIntensity: 1, // Glow intensity
+              metalness: 0, // Non-metallic
+              roughness: 0.5, // Slightly rough
+            });
+            child.material = material;
+          }
+        });
+      },
+      (xhr) => {
+        // Progress callback
+        console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+      },
+      (error) => {
+        // Error callback
+        console.error('Error loading model:', error);
+      }
+    );
+  } catch (error) {
+    console.error('Error loading model:', error);
+  }
+}
+
+// Check WebGL compatibility
 function checkWebGLCompatibility() {
   if (WebGL.isWebGL2Available()) {
     return true;
@@ -47,22 +86,20 @@ function checkWebGLCompatibility() {
   }
 }
 
-// Main function to create the scene and start the rendering process
+// Initialize the full scene and start animations
 export async function fullScene() {
-  // Initialize and load the scene along with all the objects
-  const { scene, myCube, myLine, myCone, myArch, textMesh } = await initScene();
+  const { scene, myCube, myArch } = await initScene();
 
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  const camera = createCamera();
+  const cameraInstance = new Camera();
+  const camera = cameraInstance.getCamera();
 
-  // Check WebGL compatibility
   if (checkWebGLCompatibility()) {
-    // Start animations if WebGL2 is available
     animateArch(camera, myArch, renderer, scene, 0.01, Math.PI);
-    animate(camera, myCube, renderer, scene); // Initiate function or other initializations here
+    animate(camera, myCube, renderer, scene);
   }
 
   return scene;
