@@ -1,106 +1,93 @@
 import * as THREE from 'three';
-import WebGL from 'three/addons/capabilities/WebGL.js';
-import { Camera } from '../camera.js';
-import { line } from './drawLine';
-import { cube } from './drawCube';
-import { animate } from './animateCube';
-import { cone } from './drawCone';
+import { Camera } from '../camera';
+import { ModelLoader } from './loadModel';
+import { Cube } from './drawCube';
+import { Cone } from './drawCone';
 import { Arch } from './drawArch';
-import { animateArch } from './animateArch';
-import { ModelLoader } from './loadModel.js';
-import { text3D } from './Text3D.js';
+import { Line } from './drawLine';
 
-// Initialize the scene and add objects
-async function initScene() {
+export function fullScene() {
+  // Set up the scene, camera, and renderer
   const scene = new THREE.Scene();
-
-  // Create and position objects
-  const myCube = cube();
-  const myCone = cone();
-  const myText = await text3D();
-  const myLine = line();
-  const myArch = Arch();
-  myArch.position.set(5, -3, -3);
-
-  // Add objects to the scene
-  scene.add(myCube, myLine, myText, myCone, myArch);
-
-  // Load and configure the GLTF model
-  const modelLoader = new ModelLoader();
-  loadModel(scene, modelLoader);
-
-  return { scene, myCube, myLine, myText, myCone, myArch };
-}
-
-// Load the GLTF model and apply materials
-function loadModel(scene, modelLoader) {
-  try {
-    modelLoader.loadModel(
-      'assets/models/searsia_lucida_1k.gltf', // Path to the model
-      (model) => {
-        // Model loaded successfully
-        console.log('Model loaded:', model);
-
-        // Set the model's position, scale, and rotation
-        modelLoader.setPosition(0, 2, 0);
-
-        // Add the model to the scene
-        modelLoader.addToScene(scene);
-
-        // Apply a material with an emissive color(green) to make it stand out
-        model.traverse((child) => {
-          if (child.isMesh) {
-            const material = new THREE.MeshStandardMaterial({
-              color: 0x00ff00,
-              emissive: 0x00ff00,
-              emissiveIntensity: 1, // Glow intensity
-              metalness: 0, // Non-metallic
-              roughness: 0.5, // Slightly rough
-            });
-            child.material = material;
-          }
-        });
-      },
-      (xhr) => {
-        // Progress callback
-        console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
-      },
-      (error) => {
-        // Error callback
-        console.error('Error loading model:', error);
-      }
-    );
-  } catch (error) {
-    console.error('Error loading model:', error);
-  }
-}
-
-// Check WebGL compatibility
-function checkWebGLCompatibility() {
-  if (WebGL.isWebGL2Available()) {
-    return true;
-  } else {
-    const warning = WebGL.getWebGL2ErrorMessage();
-    document.getElementById('container').appendChild(warning);
-    return false;
-  }
-}
-
-// Initialize the full scene and start animations
-export async function fullScene() {
-  const { scene, myCube, myArch } = await initScene();
-
+  const camera = new Camera();
+  const threeCamera = camera.getCamera();
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  const cameraInstance = new Camera();
-  const camera = cameraInstance.getCamera();
+  // Create instances of each class
 
-  if (checkWebGLCompatibility()) {
-    animateArch(camera, myArch, renderer, scene, 0.01, Math.PI);
-    animate(camera, myCube, renderer, scene);
+  // ModelLoader Example
+  const modelLoader = new ModelLoader();
+  modelLoader.loadModel(
+    'assets/models/searsia_lucida_1k.gltf', // Replace with your model URL
+    (model) => {
+      // Add the model to the scene
+      modelLoader.addToScene(scene);
+
+      // Set position and scale
+      modelLoader.setPosition(0, 0, 0);
+      modelLoader.setScale(2, 2, 1);
+
+      // Add lights to the scene
+      modelLoader.addLights(scene); // Add lighting
+
+      // Set color (for example, red)
+      modelLoader.setColor(0xff0000); // Red color
+    },
+    undefined, // onProgress
+    (error) => console.error('Error loading model:', error) // onError
+  );
+
+  // Cube Example
+  const cube = new Cube('assets/textures/car.jpg');
+  cube.addToScene(scene);
+  cube.setPosition(10, 0, 0);
+  cube.setScale(1, 1, 1);
+
+  // Cone Example
+  const cone = new Cone();
+  cone.addToScene(scene);
+  cone.setPosition(-10, 0, 0);
+  cone.setScale(1, 1, 1);
+
+  // Arch Example
+  const arch = new Arch(3, 5, 1, 0xff5733, true); // Example with custom color
+  arch.addToScene(scene);
+  arch.setPosition(0, -10, 0);
+  arch.setScale(1, 1, 1);
+
+  // Line Example
+  const line = new Line(0x00ff00); // Green line
+  line.addToScene(scene);
+  line.setPosition(0, 10, 0);
+  line.setScale(1, 1, 1);
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Update camera position based on arrow keys
+    camera.updateCameraPosition();
+    camera.updateAspectRatio(window.innerWidth / window.innerHeight);
+    // Call the animate function for each object
+    modelLoader.animate(); // If you want to animate your model (e.g., rotating)
+    cube.animate();
+    cone.animate();
+    arch.animate();
+    line.animate();
+
+    renderer.render(scene, threeCamera);
   }
+
+  // Start the animation
+  animate();
+
+  // Resize listener for responsive design
+  window.addEventListener('resize', () => {
+    camera.updateAspectRatio(window.innerWidth / window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
 
   return scene;
 }
